@@ -16,6 +16,7 @@ public static class ControllerSelector
             string name = type.Name
                 .ToLower()
                 .Replace("controller", "");
+            
             if (name != param)
                 continue;
             

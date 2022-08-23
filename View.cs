@@ -43,17 +43,20 @@ public class View
 
         form.MouseDown += (o, e) =>
         {
-            Controller?.OnMouseDown(e.Button, e.Location);
+            Controller?.OnMouseDown(
+                bmp, g, e.Button, e.Location);
         };
 
         form.MouseMove += (o, e) =>
         {
-            Controller?.OnMouseMove(e.Button, e.Location);
+            Controller?.OnMouseMove(
+                bmp, g, e.Button, e.Location);
         };
 
         form.MouseUp += (o, e) =>
         {
-            Controller?.OnMouseUp(e.Button, e.Location);
+            Controller?.OnMouseUp(
+                bmp, g, e.Button, e.Location);
         };
 
         form.KeyDown += (o, e) =>
@@ -61,12 +64,13 @@ public class View
             if (e.KeyCode == Keys.Escape)
                 Application.Exit();
             else if (e.KeyCode == Keys.Space)
-                Controller?.OnSpace();
+                Controller?.OnSpace(bmp, g);
         };
 
         tm.Tick += delegate
         {
-            Controller?.OnTick();
+            Controller?.OnTick(bmp, g);
+            pb.Refresh();
         };
 
         Application.Run(form);
