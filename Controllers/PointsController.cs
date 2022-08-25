@@ -1,13 +1,16 @@
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.Drawing;
 using System.Linq;
+using System.Drawing;
+using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Numerics;
 
 using GeometriaComputacional;
 
 public class PointsController : Controller
 {
     List<Point> list = new List<Point>();
+    Point p = Point.Empty;
+    bool include = false;
 
     public override void OnMouseDown(Bitmap bmp, Graphics g, MouseButtons button, Point point)
     {
@@ -18,7 +21,19 @@ public class PointsController : Controller
     {
         g.Clear(Color.White);
 
-        if (list.Count > 2)
-            g.DrawPolygon(Pens.Black, list.ToArray());
+        var pts = include ? list.Append(p).ToArray() : list.ToArray();
+
+        if (pts.Length > 2)
+            g.FillPolygon(Brushes.Red, pts);
+    }
+
+    public override void OnMouseMove(Bitmap bmp, Graphics g, MouseButtons button, Point point)
+    {
+        this.p = point;
+    }
+
+    public override void OnSpace(Bitmap bmp, Graphics g)
+    {
+        include = !include;
     }
 }

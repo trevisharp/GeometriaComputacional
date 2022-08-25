@@ -38,22 +38,27 @@ public class View
             pb.Image = bmp;
             pb.Refresh();
 
+            Controller?.SetGraphics(g);
+            Controller?.SetBitmap(bmp);
+            
+            Controller?.OnLoad(bmp, g);
+
             tm.Start();
         };
 
-        form.MouseDown += (o, e) =>
+        pb.MouseDown += (o, e) =>
         {
             Controller?.OnMouseDown(
                 bmp, g, e.Button, e.Location);
         };
 
-        form.MouseMove += (o, e) =>
+        pb.MouseMove += (o, e) =>
         {
             Controller?.OnMouseMove(
                 bmp, g, e.Button, e.Location);
         };
 
-        form.MouseUp += (o, e) =>
+        pb.MouseUp += (o, e) =>
         {
             Controller?.OnMouseUp(
                 bmp, g, e.Button, e.Location);

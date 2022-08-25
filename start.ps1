@@ -1,5 +1,5 @@
 clear
-if ($args.Length -gt 0)
+if ($args.Length -le 0)
 {
     dotnet run -c Release
 }
