@@ -51,13 +51,13 @@ public class Controller
         {
             p,
             new PointF(p.X + v.X, p.Y + v.Y),
-            new PointF(p.X + v.X + u.X, p.Y + v.Y + u.Y),
+            // new PointF(p.X + v.X + u.X, p.Y + v.Y + u.Y),
             new PointF(p.X + u.X, p.Y + u.Y)
         };
-        var area = Vector3.Cross(v, u).Z;
+        var area = Vector3.Cross(v, u).Z / 2;
         g.FillPolygon(color ?? Brushes.Blue, pts);
 
-        PointF center = new PointF(p.X + (v.X + u.X) / 2, p.Y + (v.Y + u.Y) / 2);
+        PointF center = new PointF(p.X + (v.X + u.X) / 4, p.Y + (v.Y + u.Y) / 4);
         g.DrawString(area.ToString(), SystemFonts.CaptionFont, Brushes.Black, center);
     }
 
