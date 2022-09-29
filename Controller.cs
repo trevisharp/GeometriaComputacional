@@ -61,6 +61,9 @@ public class Controller
         g.DrawString(area.ToString(), SystemFonts.CaptionFont, Brushes.Black, center);
     }
 
+    protected Vector3 cross(Vector3 v, Vector3 u)
+        => Vector3.Cross(v, u);
+
     protected Vector3 vec(Point p)
         => new Vector3(p.X, p.Y, 0);
     

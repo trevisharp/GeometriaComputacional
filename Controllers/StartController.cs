@@ -1,13 +1,12 @@
-using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
+using System.Drawing;
 using System.Numerics;
-using System;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace GeometriaComputacional;
 
-public class ClassificationController : Controller
+public class StartController : Controller
 {
     private List<List<Point>> lists = new List<List<Point>>();
     private List<Point> pts = new List<Point>();
@@ -42,6 +41,7 @@ public class ClassificationController : Controller
                 points.ToArray();
             
             g.FillPolygon(Brushes.LightGray, polygon);
+            g.DrawPolygon(Pens.Black, polygon);
 
             for (int i = 0; i < polygon.Length; i++)
             {
@@ -52,46 +52,44 @@ public class ClassificationController : Controller
                     i + 1;
                 var q = polygon[index];
 
-                index = i + 2 >= polygon.Length ?
-                    i + 2 - polygon.Length :
-                    i + 2;
+                index = i - 1 < 0 ?
+                    polygon.Length - 1 :
+                    i - 1;
                 var r = polygon[index];
 
-                var v = vec(p) - vec(r);
-                var u = vec(q) - vec(r);
+                var v = vec(r) - vec(p);
+                var u = vec(q) - vec(p);
                 var A = Vector3.Cross(u, v).Z;
-                
-                var sinTheta = A / (v.Length() * u.Length());
-                Color color = sinTheta > 0 ? Color.Red : Color.Blue;
-                var pen = new Pen(color, 2f);
 
-                double start = 180 * Math.Atan2(q.Y - p.Y, q.X - p.X) / Math.PI;
-                double end = 180 * Math.Atan2(q.Y - r.Y, q.X - r.X) / Math.PI;
-                double theta = end - start;
-                if (sinTheta < 0 && theta > 180 ||
-                    sinTheta > 0 && theta < 180)
+                if (isdown(p, r) && isdown(p, q))
                 {
-                    start = end;
-                    theta = 360 - theta;
+                    if (A > 0)
+                        g.DrawString("Start", SystemFonts.MessageBoxFont,
+                            Brushes.Green, p);
+                    else 
+                        g.DrawString("Split", SystemFonts.MessageBoxFont,
+                            Brushes.Red, p);
                 }
-                Brush brush = new SolidBrush(
-                    Color.FromArgb(
-                        (color.R + 100) / 2,
-                        (color.G + 100) / 2,
-                        (color.B + 100) / 2
-                    )
-                );
-                g.FillPie(brush,
-                    q.X - 25, q.Y - 25,
-                    50, 50, (int)start + 180, (int)theta);
-                g.DrawPie(pen,
-                    q.X - 25, q.Y - 25,
-                    50, 50, (int)start + 180, (int)theta);
-                
-                pen = A > 0 ? Pens.Blue : Pens.Red;
+                else if (isdown(r, p) && isdown(q, p))
+                {
+                    if (A > 0)
+                        g.DrawString("End", SystemFonts.MessageBoxFont,
+                            Brushes.Blue, p);
+                    else 
+                        g.DrawString("Merge", SystemFonts.MessageBoxFont,
+                            Brushes.Orange, p);
+                }
+                else
+                {
+                    g.DrawString("Regular", SystemFonts.MessageBoxFont,
+                        Brushes.Purple, p);
+                }     
 
-                g.DrawLine(pen, q.X, q.Y, (p.X + q.X) / 2, (p.Y + q.Y) / 2);
-                g.DrawLine(pen, q.X, q.Y, (r.X + q.X) / 2, (r.Y + q.Y) / 2);
+            }
+
+            bool isdown(Point p, Point q)
+            {
+                return p.Y < q.Y || (p.Y == q.Y && p.X > q.X);
             }
         }
     }
