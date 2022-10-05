@@ -79,7 +79,6 @@ public class LigthController : Controller
         pthGrBrush.SurroundColors = colors;
         g.FillPolygon(pthGrBrush, ligth.ToArray());
         g.FillEllipse(Brushes.Blue, p.X, p.Y, 10, 10);
-        
     }
 
     private void computeElement(List<PointF> ligth, Vector3 start, int i, Graphics g)
