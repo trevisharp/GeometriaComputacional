@@ -61,17 +61,22 @@ public class Edge
         // v.Y + (p.X - v.X) * r.Y / r.X - p.Y = b * (t.Y - t.X * r.Y / r.X)
         // (v.Y + (p.X - v.X) * r.Y / r.X - p.Y) / (t.Y - t.X * r.Y / r.X) = b
         var b = (v.Y + (p.X - v.X) * r.Y / r.X - p.Y) / (t.Y - t.X * r.Y / r.X);
-        var q = u + r * b;
+        var q = p + t * b;
         var newPt = q.ToPoint();
         
-        float mod = (float)(Math.Sqrt(u.X * u.X + u.Y * u.Y));
-        if (b < 0 || b > mod)
+        float mod = (float)(Math.Sqrt(r.X * r.X + r.Y * r.Y));
+        float delta = 20 / mod;
+        if (b < -delta || b > delta)
+            return null;
+        
+        float a = (p.X + b * t.X - v.X) / r.X;
+        if (a < 0 || a > 1)
             return null;
 
         return newPt;
     }
 
-    public Edge Split(PointF pt)
+    public Edge? Split(PointF pt)
     {
         var possiblePt = TestSplit(pt);
         if (!possiblePt.HasValue)
@@ -103,7 +108,7 @@ public class Edge
             PointB.X - size / 2,
             PointB.Y - size / 2,
             size, size);
-        Pen pen = new Pen(Color.Black, size / 2);
+        Pen pen = new Pen(Color.Black, size / 3);
         g.DrawLine(pen, PointA, PointB);
     }    
 }
