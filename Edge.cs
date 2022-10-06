@@ -50,7 +50,7 @@ public class Edge
 
     public Edge(
         PointF ptA, PointF ptB,
-        Edge next, Edge previous
+        Edge next = null, Edge previous = null
     )
     {
         this.PointA = ptA;
@@ -70,7 +70,7 @@ public class Edge
     public Edge(
         float x1, float y1, 
         float x2, float y2,
-        Edge next, Edge previous)
+        Edge next = null, Edge previous = null)
     {
         this.PointA = (x1, y1).ToPoint();
         this.PointB = (x2, y2).ToPoint();
@@ -148,6 +148,8 @@ public class Edge
 
     public Edge[] Split(PointF pt)
     {
+        var twin = Twin;
+
         List<Edge> edges = new List<Edge>();
         var newEdgeA = split(pt);
         if (newEdgeA == null)
@@ -159,9 +161,12 @@ public class Edge
             var newEdgeB = Twin.split(pt);
             if (newEdgeB == null)
                 return edges.ToArray();
-            
             edges.Add(newEdgeB);
-            newEdgeA.Twin = Twin;
+
+            newEdgeA.Twin = twin;
+            twin.Twin = newEdgeA;
+
+            newEdgeB.Twin = this;
             this.Twin = newEdgeB;
         }
 
@@ -175,8 +180,7 @@ public class Edge
         var thisNext = this.Next;
         var thisPrevious = this.Previous;
 
-        Edge newEdgeA = new Edge(
-            this.PointB, edge.PointB, null, null);
+        Edge newEdgeA = new Edge(this.PointB, edge.PointB);
         newEdgeA.next = edgeNext;
         edgeNext.Previous = newEdgeA;
         newEdgeA.Previous = this;
