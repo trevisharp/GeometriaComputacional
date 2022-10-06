@@ -1,14 +1,28 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace GeometriaComputacional;
 
 public class Edge
 {
+    private List<Edge> orbit = new List<Edge>();
+    private Edge next = null;
+
     public PointF PointA { get; private set; }
     public PointF PointB { get; private set; }
-    public Edge Next { get; private set; }
+    public Edge Next
+    {
+        get => next;
+        set
+        {
+            if (!orbit.Contains(value))
+                orbit.Add(value);
+            this.next = value;
+        }
+    }
     public Edge Previous { get; private set; }
+    public IEnumerable<Edge> Orbit => orbit;
 
     public Edge(
         PointF ptA, PointF ptB,
@@ -25,6 +39,8 @@ public class Edge
         this.Previous = previous;
         if (previous != null)
             previous.Next = this;
+        
+        this.orbit.Add(this);
     }
 
     public Edge(
@@ -42,6 +58,8 @@ public class Edge
         this.Previous = previous;
         if (previous != null)
             previous.Next = this;
+            
+        this.orbit.Add(this);
     }
 
     public PointF? TestSplit(PointF pt)
@@ -87,6 +105,11 @@ public class Edge
         this.PointB = newPt;
         
         Edge edge = new Edge(newPt, pb, this.Next, this);
+
+        this.orbit.Clear();
+        this.orbit.Add(this);
+        this.orbit.Add(edge);
+
         return edge;
     }
 
@@ -94,14 +117,20 @@ public class Edge
     {
         Edge newEdge = new Edge(
             this.PointB, edge.PointB, edge.Next, this);
+        edge.orbit.Add(newEdge);
+        newEdge.orbit.AddRange(edge.orbit);
         return newEdge;
     }
 
-    public void Draw(Graphics g, bool selected, bool marked)
+    public void Draw(Graphics g, bool selected, bool marked, bool orbit, bool target)
     {
-        Color color = marked ? Color.Red : Color.Black;
-        Brush brush = new SolidBrush(color);
         int size = selected ? 20 : 10;
+        Color color = target ? Color.Orange : 
+            (marked ? Color.Red : 
+            (orbit ? Color.LimeGreen : Color.Black));
+        Brush brush = new SolidBrush(color);
+        Pen pen3 = new Pen(color, size / 3);
+
         g.FillEllipse(brush, 
             PointA.X - size / 2, 
             PointA.Y - size / 2, 
@@ -110,7 +139,34 @@ public class Edge
             PointB.X - size / 2,
             PointB.Y - size / 2,
             size, size);
-        Pen pen = new Pen(color, size / 3);
-        g.DrawLine(pen, PointA, PointB);
+        if (selected || marked)
+        {
+            Pen pen5 = new Pen(color, size / 5);
+            g.DrawEllipse(pen5, 
+                PointB.X - 2 * size / 3,
+                PointB.Y - 2 * size / 3,
+                4 * size / 3, 4 * size / 3);
+        }
+        g.DrawLine(pen3, PointA, PointB);
     }    
+
+    public PointF[] Area
+    {
+        get
+        {
+            var it = this;
+            
+            List<PointF> pts = new List<PointF>();
+            pts.Add(it.PointB);
+            it = it.Next;
+
+            while (it != this)
+            {
+                pts.Add(it.PointB);
+                it = it.next;
+            }
+
+            return pts.ToArray();
+        }
+    }
 }

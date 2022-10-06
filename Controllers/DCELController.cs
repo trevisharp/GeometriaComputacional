@@ -61,5 +61,13 @@ public class DCELController : Controller
         {
             dcel.Mark();
         }
+        else if (key == Keys.O)
+        {
+            dcel.Orbit();
+        }
+        else if (key == Keys.P)
+        {
+            dcel.Select();
+        }
     }
 }
