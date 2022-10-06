@@ -70,6 +70,7 @@ public class View
                 Application.Exit();
             else if (e.KeyCode == Keys.Space)
                 Controller?.OnSpace(bmp, g);
+            Controller?.OnKeyDown(bmp, g, e.KeyCode);
         };
 
         tm.Tick += delegate

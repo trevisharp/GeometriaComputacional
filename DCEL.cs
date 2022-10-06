@@ -7,12 +7,24 @@ public class DCEL
 {
     private List<Edge> edges = new List<Edge>();
     public IEnumerable<Edge> Edges => edges;
+    public Edge Selected { get; set; } = null;
+    public Edge Marked { get; set; } = null;
+
+    private bool onDown = false;
 
     public void Add(Edge edge)
-        => this.edges.Add(edge);
+    {
+        this.edges.Add(edge);
+        this.Selected = edge;
+    }
     
     public void AddRange(params Edge[] edges)
-        => this.edges.AddRange(edges);
+    {
+        if (edges.Length == 0)
+            return;
+        this.edges.AddRange(edges);
+        this.Selected = edges[0];
+    }
 
     public void Split(PointF p)
     {
@@ -34,7 +46,7 @@ public class DCEL
         bool finded = false;
         foreach (var edge in this.edges)
         {
-            edge.Draw(g, false);
+            edge.Draw(g, edge == Selected, edge == Marked);
             if (finded)
                 continue;
             
@@ -49,7 +61,30 @@ public class DCEL
 
         if (down)
         {
+            onDown = true;
+        }
+        else if (onDown)
+        {
             Split(cursor);
+            onDown = false;
+        }
+    }
+
+    public void SelectLeft()
+        => Selected = Selected.Previous;
+    
+    public void SelectRight()
+        => Selected = Selected.Next;
+
+    public void Mark()
+    {
+        if (Marked == null)
+            Marked = Selected;
+        else
+        {
+            var newEdge = Marked.Connect(Selected);
+            Add(newEdge);
+            Marked = null;
         }
     }
 }

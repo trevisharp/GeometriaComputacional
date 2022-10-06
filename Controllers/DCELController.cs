@@ -9,14 +9,15 @@ public class DCELController : Controller
 
     private bool mouseDown = false;
     private PointF cursor = PointF.Empty;
+    private int mode = 0;
 
     public override void OnLoad(Bitmap bmp, Graphics g)
     {
         Edge edgeA = new Edge(300, 300, 500, 300, null, null);
-        Edge edgeB = new Edge(500, 300, 700, 500, edgeA, null);
-        Edge edgeC = new Edge(700, 500, 500, 900, edgeB, null);
-        Edge edgeD = new Edge(500, 900, 400, 1000, edgeC, null);
-        Edge edgeE = new Edge(400, 1000, 300, 300, edgeD, edgeA);
+        Edge edgeB = new Edge(500, 300, 700, 500, null, edgeA);
+        Edge edgeC = new Edge(700, 500, 500, 900, null, edgeB);
+        Edge edgeD = new Edge(500, 900, 400, 1000, null, edgeC);
+        Edge edgeE = new Edge(400, 1000, 300, 300, edgeA, edgeD);
         dcel.AddRange(edgeA, edgeB, edgeC, edgeD, edgeE);
     }
 
@@ -39,5 +40,26 @@ public class DCELController : Controller
     {
         g.Clear(Color.White);
         dcel.Draw(g, mouseDown, cursor);
+    }
+
+    public override void OnSpace(Bitmap bmp, Graphics g)
+    {
+        
+    }
+
+    public override void OnKeyDown(Bitmap bmp, Graphics g, Keys key)
+    {
+        if (key == Keys.Left)
+        {
+            dcel.SelectLeft();
+        }
+        else if (key == Keys.Right)
+        {
+            dcel.SelectRight();
+        }
+        else if (key == Keys.S)
+        {
+            dcel.Mark();
+        }
     }
 }

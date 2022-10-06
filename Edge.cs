@@ -83,32 +83,34 @@ public class Edge
             return null;
         var newPt = possiblePt.Value;
 
-        var pointB = this.PointB;
+        var pb = this.PointB;
         this.PointB = newPt;
-
-        Edge edge = new Edge(newPt, pointB, this.Next, this);
+        
+        Edge edge = new Edge(newPt, pb, this.Next, this);
         return edge;
     }
 
     public Edge Connect(Edge edge)
     {
         Edge newEdge = new Edge(
-            this.PointB, edge.PointA, edge, this);
+            this.PointB, edge.PointB, edge.Next, this);
         return newEdge;
     }
 
-    public void Draw(Graphics g, bool selected)
+    public void Draw(Graphics g, bool selected, bool marked)
     {
+        Color color = marked ? Color.Red : Color.Black;
+        Brush brush = new SolidBrush(color);
         int size = selected ? 20 : 10;
-        g.FillEllipse(Brushes.Black, 
+        g.FillEllipse(brush, 
             PointA.X - size / 2, 
             PointA.Y - size / 2, 
             size, size);
-        g.FillEllipse(Brushes.Black, 
+        g.FillEllipse(brush, 
             PointB.X - size / 2,
             PointB.Y - size / 2,
             size, size);
-        Pen pen = new Pen(Color.Black, size / 3);
+        Pen pen = new Pen(color, size / 3);
         g.DrawLine(pen, PointA, PointB);
     }    
 }

@@ -99,4 +99,9 @@ public class Controller
     public virtual void OnLoad(
         Bitmap bmp,
         Graphics g) { }
+    
+    public virtual void OnKeyDown(
+        Bitmap bmp,
+        Graphics g,
+        Keys key) { }
 }
