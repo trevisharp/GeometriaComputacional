@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -16,14 +17,25 @@ public class Edge
         get => next;
         set
         {
-            if (!orbit.Contains(value))
-                orbit.Add(value);
+            AddOrbit(next);
             this.next = value;
         }
     }
     public Edge Previous { get; private set; }
     public IEnumerable<Edge> Orbit => orbit;
-    public Edge Twin { get; set; }
+    public Edge Twin { get; set; } = null;
+
+    public void AddOrbit(Edge value)
+    {
+        if (!orbit.Contains(value))
+            orbit.Add(value);
+    }
+
+    public void AddRangeOrbit(IEnumerable<Edge> value)
+    {
+        foreach (var edge in value)
+            AddOrbit(edge);
+    }
 
     public Edge(
         PointF ptA, PointF ptB,
@@ -41,7 +53,7 @@ public class Edge
         if (previous != null)
             previous.Next = this;
         
-        this.orbit.Add(this);
+        this.AddOrbit(this);
     }
 
     public Edge(
@@ -106,10 +118,12 @@ public class Edge
         this.PointB = newPt;
         
         Edge edge = new Edge(newPt, pb, this.Next, this);
+        edge.AddOrbit(this.next);
+        edge.orbit.Remove(this);
 
         this.orbit.Clear();
-        this.orbit.Add(this);
-        this.orbit.Add(edge);
+        this.AddOrbit(this);
+        this.AddOrbit(edge);
 
         return edge;
     }
@@ -150,10 +164,10 @@ public class Edge
         newEdgeA.Previous = this;
         this.next = newEdgeA;
 
-        newEdgeA.orbit.AddRange(edge.orbit);
+        newEdgeA.AddRangeOrbit(edge.orbit);
         for (int i = 0; i < edge.orbit.Count; i++)
         {
-            edge.orbit[i].orbit.Add(newEdgeA);
+            edge.orbit[i].AddOrbit(newEdgeA);
         }
 
         Edge newEdgeB = new Edge(
@@ -163,10 +177,10 @@ public class Edge
         newEdgeB.Previous = edge;
         edge.next = newEdgeB;
 
-        newEdgeB.orbit.AddRange(this.orbit);
+        newEdgeB.AddRangeOrbit(this.orbit);
         for (int i = 0; i < this.orbit.Count; i++)
         {
-            this.orbit[i].orbit.Add(newEdgeB);
+            this.orbit[i].AddOrbit(newEdgeB);
         }
 
         newEdgeA.Twin = newEdgeB;
@@ -181,6 +195,11 @@ public class Edge
 
     public void Draw(Graphics g, bool selected, bool marked, bool orbit, bool target)
     {
+        #if DEBUG
+        g.DrawString(this.orbit.Count.ToString(), 
+            SystemFonts.CaptionFont, Brushes.Black,
+            new PointF(PointB.X + 5, PointB.Y + 5));
+        #endif
         int size = selected ? 20 : 10;
         Color color = target ? Color.Orange : 
             (marked ? Color.Red : 

@@ -54,7 +54,7 @@ public class DCEL
                 (edge == Marked || edge?.Twin == Marked);
             bool isSelected = edge == Selected || edge?.Twin == Selected;
             bool isTarget = Target != null && (edge == Target || edge?.Twin == Target);
-            bool inOrbit = Selected.Orbit.Any(e => e != null && (e == edge || e == edge.Twin));
+            bool inOrbit = Selected.Orbit.Any(e => e != null && (e == edge));// || e == edge.Twin));
             edge.Draw(g, isSelected, isMarked, inOrbit, isTarget);
             if (finded)
                 continue;
