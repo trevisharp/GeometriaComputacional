@@ -37,7 +37,7 @@ public class DCEL
             
             if (newEdge != null)
             {
-                this.edges.Add(newEdge);
+                this.edges.AddRange(newEdge);
                 return;
             }
         }
@@ -45,16 +45,17 @@ public class DCEL
 
     public void Draw(Graphics g, bool down, PointF cursor)
     {
-        g.FillPolygon(Brushes.Gray, Selected.Area);
+        g.FillPolygon(Brushes.Gray, Selected.Face);
 
         bool finded = false;
         foreach (var edge in this.edges)
         {
-            edge.Draw(g, 
-                edge == Selected, 
-                edge == Marked,
-                Selected.Orbit.Any(e => e == edge),
-                edge == Target);
+            bool isMarked = Marked != null &&
+                (edge == Marked || edge?.Twin == Marked);
+            bool isSelected = edge == Selected || edge?.Twin == Selected;
+            bool isTarget = Target != null && (edge == Target || edge?.Twin == Target);
+            bool inOrbit = Selected.Orbit.Any(e => e != null && (e == edge || e == edge.Twin));
+            edge.Draw(g, isSelected, isMarked, inOrbit, isTarget);
             if (finded)
                 continue;
             
@@ -130,7 +131,7 @@ public class DCEL
         else
         {
             var newEdge = Marked.Connect(Selected);
-            Add(newEdge);
+            AddRange(newEdge);
             Marked = null;
         }
     }

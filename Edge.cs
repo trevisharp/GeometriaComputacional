@@ -23,6 +23,7 @@ public class Edge
     }
     public Edge Previous { get; private set; }
     public IEnumerable<Edge> Orbit => orbit;
+    public Edge Twin { get; set; }
 
     public Edge(
         PointF ptA, PointF ptB,
@@ -94,7 +95,7 @@ public class Edge
         return newPt;
     }
 
-    public Edge? Split(PointF pt)
+    public Edge? split(PointF pt)
     {
         var possiblePt = TestSplit(pt);
         if (!possiblePt.HasValue)
@@ -113,13 +114,69 @@ public class Edge
         return edge;
     }
 
-    public Edge Connect(Edge edge)
+    public Edge[] Split(PointF pt)
     {
-        Edge newEdge = new Edge(
-            this.PointB, edge.PointB, edge.Next, this);
-        edge.orbit.Add(newEdge);
-        newEdge.orbit.AddRange(edge.orbit);
-        return newEdge;
+        List<Edge> edges = new List<Edge>();
+        var newEdgeA = split(pt);
+        if (newEdgeA == null)
+            return null;
+        edges.Add(newEdgeA);
+        
+        if (Twin != null)
+        {
+            var newEdgeB = Twin.split(pt);
+            if (newEdgeB == null)
+                return edges.ToArray();
+            
+            edges.Add(newEdgeB);
+            newEdgeA.Twin = Twin;
+            this.Twin = newEdgeB;
+        }
+
+        return edges.ToArray();
+    }
+
+    public Edge[] Connect(Edge edge)
+    {
+        var edgeNext = edge.next;
+        var edgePrevious = edge.Previous;
+        var thisNext = this.Next;
+        var thisPrevious = this.Previous;
+
+        Edge newEdgeA = new Edge(
+            this.PointB, edge.PointB, null, null);
+        newEdgeA.next = edgeNext;
+        edgeNext.Previous = newEdgeA;
+        newEdgeA.Previous = this;
+        this.next = newEdgeA;
+
+        newEdgeA.orbit.AddRange(edge.orbit);
+        for (int i = 0; i < edge.orbit.Count; i++)
+        {
+            edge.orbit[i].orbit.Add(newEdgeA);
+        }
+
+        Edge newEdgeB = new Edge(
+            edge.PointB, this.PointB, null, null);
+        newEdgeB.next = thisNext;
+        thisNext.Previous = newEdgeB;
+        newEdgeB.Previous = edge;
+        edge.next = newEdgeB;
+
+        newEdgeB.orbit.AddRange(this.orbit);
+        for (int i = 0; i < this.orbit.Count; i++)
+        {
+            this.orbit[i].orbit.Add(newEdgeB);
+        }
+
+        newEdgeA.Twin = newEdgeB;
+        newEdgeB.Twin = newEdgeA;
+
+        return new Edge[]
+        {
+            newEdgeA,
+            newEdgeB
+        };
     }
 
     public void Draw(Graphics g, bool selected, bool marked, bool orbit, bool target)
@@ -150,12 +207,12 @@ public class Edge
         g.DrawLine(pen3, PointA, PointB);
     }    
 
-    public PointF[] Area
+    public PointF[] Face
     {
         get
         {
             var it = this;
-            
+
             List<PointF> pts = new List<PointF>();
             pts.Add(it.PointB);
             it = it.Next;
