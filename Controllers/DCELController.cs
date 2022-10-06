@@ -69,5 +69,9 @@ public class DCELController : Controller
         {
             dcel.Select();
         }
+        else if (key == Keys.T)
+        {
+            dcel.SelectTwin();
+        }
     }
 }

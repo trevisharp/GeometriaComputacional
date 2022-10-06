@@ -9,6 +9,7 @@ public class Edge
 {
     private List<Edge> orbit = new List<Edge>();
     private Edge next = null;
+    private Edge previous = null;
 
     public PointF PointA { get; private set; }
     public PointF PointB { get; private set; }
@@ -17,16 +18,26 @@ public class Edge
         get => next;
         set
         {
-            AddOrbit(next);
+            AddOrbit(value);
             this.next = value;
         }
     }
-    public Edge Previous { get; private set; }
+    public Edge Previous
+    {
+        get => previous;
+        set
+        {
+            value?.AddOrbit(this);
+            this.previous = value;
+        }
+    }
     public IEnumerable<Edge> Orbit => orbit;
     public Edge Twin { get; set; } = null;
 
     public void AddOrbit(Edge value)
     {
+        if (value == null)
+            return;
         if (!orbit.Contains(value))
             orbit.Add(value);
     }
@@ -116,13 +127,20 @@ public class Edge
 
         var pb = this.PointB;
         this.PointB = newPt;
+
+        var thisNext = this.next;
         
-        Edge edge = new Edge(newPt, pb, this.Next, this);
-        edge.AddOrbit(this.next);
+        Edge edge = new Edge(newPt, pb, null, null);
+        edge.AddRangeOrbit(this.orbit);
         edge.orbit.Remove(this);
 
-        this.orbit.Clear();
-        this.AddOrbit(this);
+        edge.next = thisNext;
+        thisNext.previous = edge;
+
+        edge.previous = this;
+        this.next = edge;
+
+        this.orbit.Remove(thisNext);
         this.AddOrbit(edge);
 
         return edge;
@@ -195,11 +213,6 @@ public class Edge
 
     public void Draw(Graphics g, bool selected, bool marked, bool orbit, bool target)
     {
-        #if DEBUG
-        g.DrawString(this.orbit.Count.ToString(), 
-            SystemFonts.CaptionFont, Brushes.Black,
-            new PointF(PointB.X + 5, PointB.Y + 5));
-        #endif
         int size = selected ? 20 : 10;
         Color color = target ? Color.Orange : 
             (marked ? Color.Red : 
