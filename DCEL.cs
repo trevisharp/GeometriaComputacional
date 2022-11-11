@@ -45,7 +45,8 @@ public class DCEL
 
     public void Draw(Graphics g, bool down, PointF cursor)
     {
-        g.FillPolygon(Brushes.Gray, Selected.Face);
+        if (Selected != null)
+            g.FillPolygon(Brushes.Gray, Selected.Face);
 
         bool finded = false;
         foreach (var edge in this.edges)

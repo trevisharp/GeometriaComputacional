@@ -4,7 +4,7 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Numerics;
 
-using GeometriaComputacional;
+namespace GeometriaComputacional;
 
 public class PointsController : Controller
 {

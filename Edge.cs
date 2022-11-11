@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace GeometriaComputacional;
 
@@ -118,7 +118,7 @@ public class Edge
         return newPt;
     }
 
-    public Edge? split(PointF pt)
+    public Edge? split(PointF pt, bool isTwin = false)
     {
         var possiblePt = TestSplit(pt);
         if (!possiblePt.HasValue)
@@ -130,7 +130,7 @@ public class Edge
 
         var thisNext = this.next;
         
-        Edge edge = new Edge(newPt, pb, null, null);
+        Edge edge = new Edge(newPt, pb);
         edge.AddRangeOrbit(this.orbit);
         edge.orbit.Remove(this);
 
@@ -140,9 +140,6 @@ public class Edge
         edge.previous = this;
         this.next = edge;
 
-        this.orbit.Remove(thisNext);
-        this.AddOrbit(edge);
-
         return edge;
     }
 
@@ -151,14 +148,14 @@ public class Edge
         var twin = Twin;
 
         List<Edge> edges = new List<Edge>();
-        var newEdgeA = split(pt);
+        var newEdgeA = this.split(pt);
         if (newEdgeA == null)
             return null;
         edges.Add(newEdgeA);
         
         if (Twin != null)
         {
-            var newEdgeB = Twin.split(pt);
+            var newEdgeB = Twin.split(pt, true);
             if (newEdgeB == null)
                 return edges.ToArray();
             edges.Add(newEdgeB);
@@ -166,9 +163,16 @@ public class Edge
             newEdgeA.Twin = twin;
             twin.Twin = newEdgeA;
 
-            newEdgeB.Twin = this;
-            this.Twin = newEdgeB;
+            newEdgeB.Twin = newEdgeA;
+            newEdgeA.Twin = newEdgeB;
+
+            twin.orbit.Clear();
+            twin.AddOrbit(twin);
         }
+        
+        this.orbit.Clear();
+        this.AddOrbit(this);
+        this.AddOrbit(newEdgeA);
 
         return edges.ToArray();
     }
@@ -181,29 +185,26 @@ public class Edge
         var thisPrevious = this.Previous;
 
         Edge newEdgeA = new Edge(this.PointB, edge.PointB);
+
         newEdgeA.next = edgeNext;
-        edgeNext.Previous = newEdgeA;
-        newEdgeA.Previous = this;
+        edgeNext.previous = newEdgeA;
+
+        newEdgeA.previous = this;
         this.next = newEdgeA;
-
+        
         newEdgeA.AddRangeOrbit(edge.orbit);
-        for (int i = 0; i < edge.orbit.Count; i++)
-        {
-            edge.orbit[i].AddOrbit(newEdgeA);
-        }
+        edge.orbit.Add(newEdgeA);
 
-        Edge newEdgeB = new Edge(
-            edge.PointB, this.PointB, null, null);
+        Edge newEdgeB = new Edge(edge.PointB, this.PointB);
+
         newEdgeB.next = thisNext;
-        thisNext.Previous = newEdgeB;
-        newEdgeB.Previous = edge;
+        thisNext.previous = newEdgeB;
+
+        newEdgeB.previous = edge;
         edge.next = newEdgeB;
 
         newEdgeB.AddRangeOrbit(this.orbit);
-        for (int i = 0; i < this.orbit.Count; i++)
-        {
-            this.orbit[i].AddOrbit(newEdgeB);
-        }
+        this.orbit.Add(newEdgeB);
 
         newEdgeA.Twin = newEdgeB;
         newEdgeB.Twin = newEdgeA;
