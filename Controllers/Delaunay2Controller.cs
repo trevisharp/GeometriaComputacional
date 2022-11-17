@@ -12,6 +12,7 @@ public class Delaunay2Controller : Controller
     List<Point> list = new List<Point>();
     Point p = Point.Empty;
     bool include = false;
+    bool circlesOn = true;
 
     public override void OnLoad(Bitmap bmp, Graphics g)
     {
@@ -50,7 +51,6 @@ public class Delaunay2Controller : Controller
             new Rectangle(p.X - 2, p.Y - 2, 4, 4));
     }
 
-    //Não é ainda kk
     private void delaunay(Point[] pts, Graphics g)
     {
         if (pts.Length < 3)
@@ -85,6 +85,9 @@ public class Delaunay2Controller : Controller
                 t.b,
                 t.c
             });
+            if (!circlesOn)
+                continue;
+            
             if (inCircle(t.circle, this.p))
                 drawCircle(t.circle, Pens.Red, g);
             else drawCircle(t.circle, pen2, g);
@@ -126,6 +129,14 @@ public class Delaunay2Controller : Controller
         }
 
         return visible.ToArray();
+    }
+
+    public override void OnKeyDown(Bitmap bmp, Graphics g, Keys key)
+    {
+        if (key == Keys.O)
+        {
+            circlesOn = !circlesOn;
+        }
     }
 
     private bool collison(Point p, Point q, Point r, Point s, Graphics g = null)
