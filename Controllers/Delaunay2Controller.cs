@@ -85,7 +85,9 @@ public class Delaunay2Controller : Controller
                 t.b,
                 t.c
             });
-            drawCircle(t.circle, pen2, g);
+            if (inCircle(t.circle, this.p))
+                drawCircle(t.circle, Pens.Red, g);
+            else drawCircle(t.circle, pen2, g);
         }
     }
 
