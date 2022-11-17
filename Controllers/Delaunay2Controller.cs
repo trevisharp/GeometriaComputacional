@@ -50,6 +50,7 @@ public class Delaunay2Controller : Controller
             new Rectangle(p.X - 2, p.Y - 2, 4, 4));
     }
 
+    //Não é ainda kk
     private void delaunay(Point[] pts, Graphics g)
     {
         if (pts.Length < 3)
@@ -76,7 +77,7 @@ public class Delaunay2Controller : Controller
         }
 
         Pen pen = new Pen(Brushes.Black, 2f);
-        Pen pen2 = new Pen(Color.FromArgb(128, 128, 128, 128), 1f);
+        Pen pen2 = new Pen(Color.FromArgb(180, 128, 128, 128), 1f);
         foreach (var t in triangulation)
         {
             g.DrawPolygon(pen, new Point[] { 
