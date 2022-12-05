@@ -104,4 +104,9 @@ public class Controller
         Bitmap bmp,
         Graphics g,
         Keys key) { }
+    
+    public virtual void OnKeyUp(
+        Bitmap bmp,
+        Graphics g,
+        Keys key) { }
 }

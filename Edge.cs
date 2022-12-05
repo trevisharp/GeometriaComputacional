@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Drawing;
+using System.Numerics;
 using System.Collections.Generic;
 
 namespace GeometriaComputacional;
@@ -8,259 +9,184 @@ namespace GeometriaComputacional;
 public class Edge
 {
     private List<Edge> orbit = new List<Edge>();
-    private Edge next = null;
-    private Edge previous = null;
 
+    public DCEL Parent { get; private set; }
     public PointF PointA { get; private set; }
     public PointF PointB { get; private set; }
-    public Edge Next
-    {
-        get => next;
-        set
-        {
-            AddOrbit(value);
-            this.next = value;
-        }
-    }
-    public Edge Previous
-    {
-        get => previous;
-        set
-        {
-            value?.AddOrbit(this);
-            this.previous = value;
-        }
-    }
+    public Edge Next { get; private set; }
+    public Edge Previous { get; private set; }
+    public Edge Twin { get; private set; }
     public IEnumerable<Edge> Orbit => orbit;
-    public Edge Twin { get; set; } = null;
 
-    public void AddOrbit(Edge value)
+    public Edge[] Connect(Edge next)
     {
-        if (value == null)
-            return;
-        if (!orbit.Contains(value))
-            orbit.Add(value);
-    }
+        var oldNext = this.Next;
+        var oldPrevious = next.Previous;
 
-    public void AddRangeOrbit(IEnumerable<Edge> value)
-    {
-        foreach (var edge in value)
-            AddOrbit(edge);
-    }
+        Edge edge = new Edge();
+        edge.PointA = this.PointB;
+        edge.PointB = next.PointA;
+        edge.Parent = this.Parent;
 
-    public Edge(
-        PointF ptA, PointF ptB,
-        Edge next = null, Edge previous = null
-    )
-    {
-        this.PointA = ptA;
-        this.PointB = ptB;
+        this.Next = edge;
+        edge.Previous = this;
+        next.Previous = edge;
+        edge.Next = next;
 
-        this.Next = next;
-        if (next != null)
-            next.Previous = this;
 
-        this.Previous = previous;
-        if (previous != null)
-            previous.Next = this;
-        
-        this.AddOrbit(this);
-    }
+        Edge twin = new Edge();
+        twin.PointA = next.PointA;
+        twin.PointB = this.PointB;
+        twin.Parent = this.Parent;
 
-    public Edge(
-        float x1, float y1, 
-        float x2, float y2,
-        Edge next = null, Edge previous = null)
-    {
-        this.PointA = (x1, y1).ToPoint();
-        this.PointB = (x2, y2).ToPoint();
+        oldNext.Previous = twin;
+        twin.Next = oldNext;
+        oldPrevious.Next = twin;
+        twin.Previous = oldPrevious;
 
-        this.Next = next;
-        if (next != null)
-            next.Previous = this;
-
-        this.Previous = previous;
-        if (previous != null)
-            previous.Next = this;
-            
-        this.orbit.Add(this);
-    }
-
-    public PointF? TestSplit(PointF pt)
-    {
-        var p = pt.ToVector();
-        var v = PointA.ToVector();
-        var u = PointB.ToVector();
-
-        var r = u - v;
-        var t = (r.Y, -r.X).ToVector();
-
-        // v + a * r = p + b * t
-        // a = (p.X + b * t.X - v.X) / r.X
-        // v.Y + (p.X + b * t.X - v.X) * r.Y / r.X = p.Y + b * t.Y
-        // v.Y + (p.X - v.X) * r.Y / r.X + b * t.X * r.Y / r.X = p.Y + b * t.Y
-        // v.Y + (p.X - v.X) * r.Y / r.X = p.Y + b * t.Y - b * t.X * r.Y / r.X
-        // v.Y + (p.X - v.X) * r.Y / r.X - p.Y = b * (t.Y - t.X * r.Y / r.X)
-        // (v.Y + (p.X - v.X) * r.Y / r.X - p.Y) / (t.Y - t.X * r.Y / r.X) = b
-        var b = (v.Y + (p.X - v.X) * r.Y / r.X - p.Y) / (t.Y - t.X * r.Y / r.X);
-        var q = p + t * b;
-        var newPt = q.ToPoint();
-        
-        float mod = (float)(Math.Sqrt(r.X * r.X + r.Y * r.Y));
-        float delta = 20 / mod;
-        if (b < -delta || b > delta)
-            return null;
-        
-        float a = (p.X + b * t.X - v.X) / r.X;
-        if (a < 0 || a > 1)
-            return null;
-
-        return newPt;
-    }
-
-    public Edge? split(PointF pt, bool isTwin = false)
-    {
-        var possiblePt = TestSplit(pt);
-        if (!possiblePt.HasValue)
-            return null;
-        var newPt = possiblePt.Value;
-
-        var pb = this.PointB;
-        this.PointB = newPt;
-
-        var thisNext = this.next;
-        
-        Edge edge = new Edge(newPt, pb);
-        edge.AddRangeOrbit(this.orbit);
-        edge.orbit.Remove(this);
-
-        edge.next = thisNext;
-        thisNext.previous = edge;
-
-        edge.previous = this;
-        this.next = edge;
-
-        return edge;
-    }
-
-    public Edge[] Split(PointF pt)
-    {
-        var twin = Twin;
-
-        List<Edge> edges = new List<Edge>();
-        var newEdgeA = this.split(pt);
-        if (newEdgeA == null)
-            return null;
-        edges.Add(newEdgeA);
-        
-        if (Twin != null)
-        {
-            var newEdgeB = Twin.split(pt, true);
-            if (newEdgeB == null)
-                return edges.ToArray();
-            edges.Add(newEdgeB);
-
-            newEdgeA.Twin = twin;
-            twin.Twin = newEdgeA;
-
-            newEdgeB.Twin = newEdgeA;
-            newEdgeA.Twin = newEdgeB;
-
-            twin.orbit.Clear();
-            twin.AddOrbit(twin);
-        }
-        
-        this.orbit.Clear();
-        this.AddOrbit(this);
-        this.AddOrbit(newEdgeA);
-
-        return edges.ToArray();
-    }
-
-    public Edge[] Connect(Edge edge)
-    {
-        var edgeNext = edge.next;
-        var edgePrevious = edge.Previous;
-        var thisNext = this.Next;
-        var thisPrevious = this.Previous;
-
-        Edge newEdgeA = new Edge(this.PointB, edge.PointB);
-
-        newEdgeA.next = edgeNext;
-        edgeNext.previous = newEdgeA;
-
-        newEdgeA.previous = this;
-        this.next = newEdgeA;
-        
-        newEdgeA.AddRangeOrbit(edge.orbit);
-        edge.orbit.Add(newEdgeA);
-
-        Edge newEdgeB = new Edge(edge.PointB, this.PointB);
-
-        newEdgeB.next = thisNext;
-        thisNext.previous = newEdgeB;
-
-        newEdgeB.previous = edge;
-        edge.next = newEdgeB;
-
-        newEdgeB.AddRangeOrbit(this.orbit);
-        this.orbit.Add(newEdgeB);
-
-        newEdgeA.Twin = newEdgeB;
-        newEdgeB.Twin = newEdgeA;
+        edge.Twin = twin;
+        twin.Twin = edge;
 
         return new Edge[]
         {
-            newEdgeA,
-            newEdgeB
+            edge, twin
         };
     }
 
-    public void Draw(Graphics g, bool selected, bool marked, bool orbit, bool target)
+    public Edge[] Split(PointF splitPoint, DCEL dcel)
     {
-        int size = selected ? 20 : 10;
-        Color color = target ? Color.Orange : 
-            (marked ? Color.Red : 
-            (orbit ? Color.LimeGreen : Color.Black));
-        Brush brush = new SolidBrush(color);
-        Pen pen3 = new Pen(color, size / 3);
+        var nullabeNewEdgePoints = this.split(splitPoint);
 
-        g.FillEllipse(brush, 
-            PointA.X - size / 2, 
-            PointA.Y - size / 2, 
-            size, size);
-        g.FillEllipse(brush, 
-            PointB.X - size / 2,
-            PointB.Y - size / 2,
-            size, size);
-        if (selected || marked)
-        {
-            Pen pen5 = new Pen(color, size / 5);
-            g.DrawEllipse(pen5, 
-                PointB.X - 2 * size / 3,
-                PointB.Y - 2 * size / 3,
-                4 * size / 3, 4 * size / 3);
-        }
-        g.DrawLine(pen3, PointA, PointB);
-    }    
+        if (!nullabeNewEdgePoints.HasValue)
+            return new Edge[0];
+        var newEdgePoints = nullabeNewEdgePoints.Value;
 
-    public PointF[] Face
-    {
-        get
-        {
-            var it = this;
+        this.PointB = newEdgePoints.pa;
+        
+        Edge edge = new Edge();
+        edge.PointA = newEdgePoints.pa;
+        edge.PointB = newEdgePoints.pb;
+        edge.Parent = dcel;
 
-            List<PointF> pts = new List<PointF>();
-            pts.Add(it.PointB);
-            it = it.Next;
+        edge.Next = this.Next;
+        this.Next.Previous = edge;
 
-            while (it != this)
+        edge.Previous = this;
+        this.Next = edge;
+
+
+        bool needTwin = Twin != null;
+        if (needTwin)
+            Twin.PointB = newEdgePoints.pa;
+
+        if (!needTwin)
+            return new Edge[]
             {
-                pts.Add(it.PointB);
-                it = it.next;
-            }
+                edge
+            };
+        
+        Edge twin = new Edge();
+        twin.PointA = newEdgePoints.pa;
+        twin.PointB = this.PointA;
+        twin.Parent = dcel;
 
-            return pts.ToArray();
-        }
+        twin.Next = Twin.Next;
+        Twin.Next.Previous = twin;
+
+        twin.Previous = Twin;
+        Twin.Next = twin;
+
+        twin.Twin = edge;
+        edge.Twin = twin;
+
+        return new Edge[]
+        {
+            edge, twin
+        };
     }
+
+    private (PointF pa, PointF pb)? split(PointF splitPoint)
+    {
+        var va = new Vector2(PointA.X, PointA.Y);
+        var vb = new Vector2(PointB.X, PointB.Y);
+        var r = vb - va;
+        var rMod = Vector2.Distance(va, vb);
+
+        var vp = new Vector2(splitPoint.X, splitPoint.Y);
+        var s = vp - va;
+
+        var vetorProj = Vector2.Dot(r, s) / rMod;
+
+        if (vetorProj < 0 || vetorProj > rMod)
+            return null;
+
+        var rUnit = r / rMod;
+        var realSplitVetor = va + rUnit * vetorProj;
+        var realSplitPoint = new PointF(
+            realSplitVetor.X, realSplitVetor.Y);
+        
+        PointF pointA = realSplitPoint;
+        PointF pointB = this.PointB;
+        
+        return (pointA, pointB);
+    }
+
+    public static Edge[] NewEdge(
+        PointF pa, PointF pb, 
+        DCEL dcel,
+        Edge prevEdge = null,
+        Edge nextEdge = null,
+        bool makeTwin = true)
+    {
+        Edge edge = new Edge();
+        edge.PointA = pa;
+        edge.PointB = pb;
+        edge.Parent = dcel;
+
+        Edge twin = new Edge();
+        twin.PointA = pb;
+        twin.PointB = pa;
+        twin.Parent = dcel;
+
+        if (makeTwin)
+        {
+            edge.Twin = twin;
+            twin.Twin = edge;
+        }
+
+        if (prevEdge != null)
+        {
+            prevEdge.Next = edge;
+            edge.Previous = prevEdge;
+
+            if (makeTwin && prevEdge.Twin != null)
+            {
+                prevEdge.Twin.Previous = twin;
+                twin.Next = prevEdge.Twin;
+            }
+        }
+
+        if (nextEdge != null)
+        {
+            nextEdge.Previous = edge;
+            edge.Next = nextEdge;
+
+            if (makeTwin && nextEdge.Twin != null)
+            {
+                nextEdge.Twin.Next = twin;
+                twin.Previous = nextEdge.Twin;
+            }
+        }
+
+        if (!makeTwin)
+            return new Edge[] { edge };
+
+        return new Edge[]
+        {
+            edge, twin
+        };
+    }
+
+    public override string ToString()
+        => $"({PointA}, {PointB})";
 }

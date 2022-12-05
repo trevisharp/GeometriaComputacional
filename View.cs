@@ -73,6 +73,11 @@ public class View
             Controller?.OnKeyDown(bmp, g, e.KeyCode);
         };
 
+        form.KeyUp += (o, e) =>
+        {
+            Controller?.OnKeyUp(bmp, g, e.KeyCode);
+        };
+
         tm.Tick += delegate
         {
             Controller?.OnTick(bmp, g);
