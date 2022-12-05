@@ -18,6 +18,7 @@ public class FinalController : Controller
     Bitmap img = null;
     DCEL dcel = null;
     bool approxOn = false;
+    bool showDCEL = true;
 
     public override void OnLoad(Bitmap bmp, Graphics g)
     {
@@ -84,13 +85,15 @@ public class FinalController : Controller
         g.Clear(Color.White);
         if (approxOn) drawAprox(bmp, g);
         else drawReal(bmp, g);
-        dcel.Draw(g);
+        if (showDCEL) dcel.Draw(g);
     }
 
     public override void OnKeyDown(Bitmap bmp, Graphics g, Keys key)
     {
         if (key == Keys.Space)
             approxOn = true;
+        if (key == Keys.S)
+            showDCEL = !showDCEL;
     }
 
     public override void OnKeyUp(Bitmap bmp, Graphics g, Keys key)
