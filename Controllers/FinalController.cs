@@ -31,14 +31,11 @@ public class FinalController : Controller
             new Point(centX + img.Width - 1, centY + img.Height - 1),
             new Point(centX + img.Width - 1, centY + 1));
         
-        for (int i = 0; i < 1; i++)
-        {
-            Point pt = new Point(
-                Random.Shared.Next(centX, centX + img.Width),
-                Random.Shared.Next(centY, centY + img.Height)
-            );
-            dcel.AddPoint(pt);
-        }
+        dcel.AddPoint(centX + img.Width / 2, centY + img.Height / 2);
+        dcel.AddPoint(centX + img.Width / 4, centY + 3 * img.Height / 4);
+        dcel.AddPoint(centX + img.Width / 4, centY + img.Height / 4, true);
+
+        // dcel.Selected = dcel.Edges.FirstOrDefault().Next.Twin;
     }
 
     private void drawAprox(Bitmap bmp, Graphics g)
@@ -94,6 +91,10 @@ public class FinalController : Controller
             approxOn = true;
         if (key == Keys.S)
             showDCEL = !showDCEL;
+        if (key == Keys.N)
+            dcel.Selected = dcel.Selected?.Next;
+        if (key == Keys.T)
+            dcel.Selected = dcel.Selected.Twin ?? dcel.Selected;
     }
 
     public override void OnKeyUp(Bitmap bmp, Graphics g, Keys key)

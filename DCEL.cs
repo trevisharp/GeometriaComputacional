@@ -10,6 +10,7 @@ public class DCEL
 {
     private List<Edge> edges = new List<Edge>();
     public IEnumerable<Edge> Edges => edges;
+    public Edge Selected { get; set; }
 
     public Edge AddEdge(PointF pa, PointF pb, 
         Edge prev = null, Edge next = null, bool gettwin = true)
@@ -46,20 +47,27 @@ public class DCEL
         return (edges[0], edges[1]);
     }
 
-    public void AddPoint(PointF point)
+    public void AddPoint(float x, float y, bool test = false)
+        => this.AddPoint(new PointF(x, y), test);
+
+    public void AddPoint(PointF point, bool test = false)
     {
         var face = FindFace(point);
         if (face == null)
             return;
-
+    
         foreach (var edge in face)
             Split(edge, point);
 
         (Edge ed, Edge tw) = Connect(face[0], face[2].Next);
 
+        if (test)
+            return;
+
         Split(ed, point);
+        
         Connect(ed, face[0].Previous);
-        Connect(tw, face[1].Next);
+        Connect(tw.Previous, face[1].Next);
     }
 
     public Edge[] FindFace(PointF point)
@@ -114,6 +122,18 @@ public class DCEL
                 8, 8);
             g.DrawLine(pen, edge.PointA, edge.PointB);
         }
+        if (Selected == null)
+            return;
+        pen = new Pen(Brushes.Yellow, 3f);
+        brush = Brushes.Yellow;
+        g.FillEllipse(brush,
+            Selected.PointA.X - 4, Selected.PointA.Y - 4,
+            8, 8);
+        g.FillEllipse(brush,
+            Selected.PointB.X - 4, Selected.PointB.Y - 4,
+            8, 8);
+        g.DrawLine(pen, Selected.PointA, Selected.PointB);
+
     }
 
     public IEnumerable<Edge[]> Faces

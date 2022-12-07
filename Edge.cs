@@ -77,7 +77,7 @@ public class Edge
 
         bool needTwin = Twin != null;
         if (needTwin)
-            Twin.PointB = newEdgePoints.pa;
+            Twin.PointA = newEdgePoints.pa;
 
         if (!needTwin)
             return new Edge[]
@@ -86,15 +86,15 @@ public class Edge
             };
         
         Edge twin = new Edge();
-        twin.PointA = newEdgePoints.pa;
-        twin.PointB = this.PointA;
+        twin.PointA = newEdgePoints.pb;
+        twin.PointB = newEdgePoints.pa;
         twin.Parent = dcel;
 
-        twin.Next = Twin.Next;
-        Twin.Next.Previous = twin;
+        twin.Previous = Twin.Previous;
+        Twin.Previous.Next = twin;
 
-        twin.Previous = Twin;
-        Twin.Next = twin;
+        twin.Next = Twin;
+        Twin.Previous = twin;
 
         twin.Twin = edge;
         edge.Twin = twin;
