@@ -58,16 +58,16 @@ public class DCEL
     
         foreach (var edge in face)
             Split(edge, point);
-
-        (Edge ed, Edge tw) = Connect(face[0], face[2].Next);
-
+        
         if (test)
             return;
 
+        (Edge ed, Edge tw) = Connect(face[0], face[0].Oposite);
+
         Split(ed, point);
         
-        Connect(ed, face[0].Previous);
-        Connect(tw.Previous, face[1].Next);
+        Connect(ed, ed.Oposite);
+        Connect(tw.Previous, tw.Previous.Oposite);
     }
 
     public Edge[] FindFace(PointF point)

@@ -19,6 +19,7 @@ public class FinalController : Controller
     DCEL dcel = null;
     bool approxOn = false;
     bool showDCEL = true;
+    bool showImg = true;
 
     public override void OnLoad(Bitmap bmp, Graphics g)
     {
@@ -33,9 +34,9 @@ public class FinalController : Controller
         
         dcel.AddPoint(centX + img.Width / 2, centY + img.Height / 2);
         dcel.AddPoint(centX + img.Width / 4, centY + 3 * img.Height / 4);
-        dcel.AddPoint(centX + img.Width / 4, centY + img.Height / 4, true);
+        dcel.AddPoint(centX + img.Width / 4 + 50, centY + img.Height / 4 + 50);
 
-        // dcel.Selected = dcel.Edges.FirstOrDefault().Next.Twin;
+        dcel.Selected = dcel.Edges.FirstOrDefault().Previous.Oposite;
     }
 
     private void drawAprox(Bitmap bmp, Graphics g)
@@ -80,8 +81,11 @@ public class FinalController : Controller
     public override void OnTick(Bitmap bmp, Graphics g)
     {
         g.Clear(Color.White);
-        if (approxOn) drawAprox(bmp, g);
-        else drawReal(bmp, g);
+        if (showImg)
+        {
+            if (approxOn) drawAprox(bmp, g);
+            else drawReal(bmp, g);
+        }
         if (showDCEL) dcel.Draw(g);
     }
 
@@ -91,10 +95,22 @@ public class FinalController : Controller
             approxOn = true;
         if (key == Keys.S)
             showDCEL = !showDCEL;
+        if (key == Keys.I)
+            showImg = !showImg;
         if (key == Keys.N)
             dcel.Selected = dcel.Selected?.Next;
         if (key == Keys.T)
             dcel.Selected = dcel.Selected.Twin ?? dcel.Selected;
+        if (key == Keys.O)
+            dcel.Selected = dcel.Selected.Oposite ?? dcel.Selected;
+        if (key == Keys.P)
+            dcel.Selected = dcel.Selected?.Previous;
+        if (key == Keys.Z)
+        {
+            int centX = (bmp.Width - img.Width) / 2,
+                centY = (bmp.Height - img.Height) / 2;
+            dcel.AddPoint(centX + img.Width / 6 + 50, centY + img.Height / 4 + 150, true);
+        }   
     }
 
     public override void OnKeyUp(Bitmap bmp, Graphics g, Keys key)

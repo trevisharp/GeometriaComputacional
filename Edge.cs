@@ -18,6 +18,54 @@ public class Edge
     public Edge Twin { get; private set; }
     public IEnumerable<Edge> Orbit => orbit;
 
+    public bool Horizontal => this.PointA.Y == this.PointB.Y;
+    public bool Vertical => this.PointA.X == this.PointB.X;
+
+    public Edge Oposite
+    {
+        get
+        {
+            var crr = this.Next;
+
+            if (Horizontal)
+            {
+                while (!crr.Horizontal ||
+                    this.PointB.X != crr.PointA.X ||
+                    this.PointA.Y == crr.PointA.Y)
+                {
+                    if (crr == this)
+                        break;
+                    crr = crr.Next;
+                }
+            }
+            else if (Vertical)
+            {
+                while (!crr.Vertical ||
+                    this.PointB.Y != crr.PointA.Y ||
+                    this.PointA.X == crr.PointA.X)
+                {
+                    if (crr == this)
+                        break;
+                    crr = crr.Next;
+                }
+            }
+            else return null;
+            
+            if (crr == this || crr == this.Twin)
+                return null;
+            
+            return crr;
+        }
+    }
+
+    public Edge NextK(int k)
+    {
+        Edge crr = this;
+        for (int i = 0; i < k; i++)
+            crr = crr.Next;
+        return crr;
+    }
+
     public Edge[] Connect(Edge next)
     {
         var oldNext = this.Next;
