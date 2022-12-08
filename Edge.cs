@@ -68,6 +68,8 @@ public class Edge
 
     public Edge[] Connect(Edge next)
     {
+        if (next == null)
+            return new Edge[0];
         var oldNext = this.Next;
         var oldPrevious = next.Previous;
 

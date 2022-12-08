@@ -8,42 +8,28 @@ namespace GeometriaComputacional;
 
 public class PlaneDivision
 {
-    public PlaneDivision(Point start, Point end)
+    private DCEL dcel = null;
+    private float sy;
+    private float sx;
+    private Bitmap img;
+
+    public DCEL DCEL => dcel;
+
+    private PlaneDivision(
+        Bitmap img, DCEL dcel, float sx, float sy)
     {
-        this.Rectangle = new Rectangle(start.X, start.Y, 
-            end.X - start.X, end.Y - start.Y);
+        this.img = img;
+        this.dcel = dcel;
+        this.sx = sx;
+        this.sy = sy;
     }
 
-    public PlaneDivision(int sx, int sy, int ex, int ey) 
-        : this(new Point(sx, sy), new Point(ex, ey)) { }
-
-    public Rectangle Rectangle { get; private set; }
-
-    private List<PlaneDivision> child = new List<PlaneDivision>();
-    public IEnumerable<PlaneDivision> Children => child;
-
-    public void Divide(Point pt)
+    public static PlaneDivision FromPolygon(
+        float sx, float sy, Bitmap img,
+        params Point[] pts)
     {
-        if (!Rectangle.Contains(pt))
-            return;
-        
-        if (child.Count == 0)
-        {
-            divide(pt);
-            return;
-        }
-
-        foreach (var child in Children)
-            child.divide(pt);
-    }
-
-    private void divide(Point pt)
-    {
-        var s = Rectangle.Location;
-        var e = Rectangle.Location + Rectangle.Size;
-        child.Add(new PlaneDivision(s, pt));
-        child.Add(new PlaneDivision(pt.X, s.Y, e.X, pt.Y));
-        child.Add(new PlaneDivision(s.X, pt.Y, pt.X, s.Y));
-        child.Add(new PlaneDivision(pt, e));
+        return new PlaneDivision(img,
+            DCEL.FromPoints(pts), sx, sy
+        );
     }
 }

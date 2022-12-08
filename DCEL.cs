@@ -1,8 +1,7 @@
 using System.Linq;
 using System.Drawing;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace GeometriaComputacional;
 
@@ -43,6 +42,8 @@ public class DCEL
     public (Edge, Edge) Connect(Edge edgeA, Edge edgeB)
     {
         var edges = edgeA.Connect(edgeB);
+        if (edges.Length == 0)
+            return (null, null);
         this.edges.AddRange(edges);
         return (edges[0], edges[1]);
     }
@@ -59,10 +60,24 @@ public class DCEL
         foreach (var edge in face)
             Split(edge, point);
         
-        if (test)
+        Edge initial = null;
+        foreach (var edge in face)
+        {
+            if (edge.PointB.X == point.X)
+            {
+                initial = edge;
+                break;
+            }
+        }
+
+        if (initial == null)
+            return;
+        
+        var oposite = initial.Oposite;
+        if (oposite == null)
             return;
 
-        (Edge ed, Edge tw) = Connect(face[0], face[0].Oposite);
+        (Edge ed, Edge tw) = Connect(initial, initial.Oposite);
 
         Split(ed, point);
         
